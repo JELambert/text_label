@@ -3,4 +3,4 @@ streamlit
 gsheetsdb
 pyparsing
 gspread
-google.oauth2
+google-auth
