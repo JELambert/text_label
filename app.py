@@ -1,13 +1,11 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-
 import os
 import random
+
 from google.oauth2 import service_account
 from gsheetsdb import connect
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 
 st.set_page_config(layout="wide")
 
@@ -28,15 +26,6 @@ def get_data():
     return dataframe
 
 
-
-# Connect to Google Sheets
-scope = ['https://www.googleapis.com/auth/spreadsheets',
-         "https://www.googleapis.com/auth/drive"]
-
-#credentials = ServiceAccountCredentials.from_json_keyfile_name("streamlitapi-a75ce5cb14b8.json", scope)
-
-
-# Print results.
 
 def labeler():
     df = get_data()
