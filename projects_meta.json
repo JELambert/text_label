@@ -1,0 +1,7 @@
+{
+    "projects": ["train_data", "project2", "project3"],
+    "output": {"train_data":"output_data",
+               "project2":"output2",
+               "project3": "output3"},
+    "metadata": {"train_data": "just a testproject to start with"}
+}

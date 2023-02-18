@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import random
 import datetime
+import json
 
 from google.oauth2 import service_account
 from gsheetsdb import connect
@@ -26,7 +27,8 @@ def get_data(project_id):
     dataframe = pd.DataFrame(sheet.get_all_records())
     return dataframe
 
-
+with open('projects_meta.json') as f:
+    meta = json.load(f)
 
 def labeler():
 
@@ -45,9 +47,10 @@ def labeler():
         with st.sidebar:
 
             st.sidebar.title('Projects')
-            project_id = st.sidebar.radio('Select a project', ('train_data', 'Project 2', 'Project 3'))
-            
-            project_id_out = 'output_data'
+            project_id = st.sidebar.radio('Select a project', meta['projects'])
+
+            project_id_out = meta['output'][project_id]
+            st.write(meta['metadata'][project_id])
             df = get_data(project_id)
             ids = df['ids'].to_list()
 
