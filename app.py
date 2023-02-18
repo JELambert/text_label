@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import random
+import datetime
 
 from google.oauth2 import service_account
 from gsheetsdb import connect
@@ -20,14 +21,17 @@ credentials = service_account.Credentials.from_service_account_info(
 
 client = gspread.authorize(credentials)
 @st.cache_data()
-def get_data():
-    sheet = client.open("train_data").sheet1
+def get_data(project_id):
+    sheet = client.open(project_id).sheet1
     dataframe = pd.DataFrame(sheet.get_all_records())
     return dataframe
 
 
 
 def labeler():
+
+    st.markdown("# Text Labeler")
+    st.markdown("--------")
 
     placeholder = st.empty()
 
@@ -37,31 +41,32 @@ def labeler():
         st.form_submit_button("Login")
             
     if user == st.secrets["authentication"]['username'] and password == st.secrets["authentication"]['password']:
-            
-        df = get_data()
-        ids = df['ids'].to_list()
-
-        if "annotations" not in st.session_state:
-                st.session_state.annotations = {}
-                st.session_state.ids = ids
                 
         with st.sidebar:
-                st.sidebar.title('Projects')
-                if st.session_state.ids:
-                    st.session_state.current_id = st.selectbox(
-                    'Select a unique id?',
-                    st.session_state.ids)
+
+            st.sidebar.title('Projects')
+            project_id = st.sidebar.radio('Select a project', ('train_data', 'Project 2', 'Project 3'))
+            
+            project_id_out = 'output_data'
+            df = get_data(project_id)
+            ids = df['ids'].to_list()
+
+            if "annotations" not in st.session_state:
+                st.session_state.annotations = {}
+                st.session_state.ids = ids
+
+            st.markdown("--------")
+            if st.session_state.ids:
+                st.session_state.current_id = st.selectbox(
+                'Select a unique id?',
+                st.session_state.ids)
 
 
-        st.markdown("# Text Labeler")
-        st.markdown("--------")
 
 
 
         left_column, _, right_column = st.columns([50, 2, 20])
         with left_column:
-            
-
 
             def annotate(label):
                 st.session_state.annotations[st.session_state.current_id] = label
@@ -73,12 +78,14 @@ def labeler():
             st.markdown("---------")
             st.markdown(" ")
             st.markdown("labels:")
+
+
             if st.session_state.ids:
-                a, b = st.columns(2)
-                with a:
-                    st.button("This is a dog! 🐶", on_click=annotate, args=("dog",))
-                with b:
-                    st.button("This is a cat! 🐱", on_click=annotate, args=("cat",))
+
+                labels =  eval(df.loc[df['ids'] == st.session_state.current_id]['label_list'].values[0])
+                cols = st.columns(len(labels))
+                for i in labels:
+                    cols[labels.index(i)].button(i, on_click=annotate, args=(i,))
 
             else:
             
@@ -88,7 +95,9 @@ def labeler():
                 dfnew = df.T
                 dfnew.columns = ['labels']
                 dfnew = dfnew.reset_index()
-                sheet2 = client.open("output_data").sheet1
+                dfnew['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+
+                sheet2 = client.open(project_id_out).sheet1
                 sheet2.update([dfnew.columns.values.tolist()] + dfnew.values.tolist())
 
         with right_column:
